@@ -26,6 +26,9 @@ re-downloaded in order to locate PACKAGE."
 (setq backup-directory-alist
       `(("." . ,(expand-file-name
                  (concat user-emacs-directory "backups")))))
+(setq auto-save-file-name-transforms
+      `((".*" ,(expand-file-name 
+		(concat user-emacs-directory "auto-save")) t)))
 ;; Make backups of files, even when they're in version control
 (setq vc-make-backup-files t)
 
@@ -77,7 +80,7 @@ re-downloaded in order to locate PACKAGE."
    escreen                  ; screen for emacs, C-\ C-h
    switch-window            ; takes over C-x o
    auto-complete            ; complete as you type with overlays
-   autopair
+   yasnippet
    highlight-parentheses
    undo-tree
    multi-term
@@ -272,7 +275,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 
 ;; pair configuration
-(autopair-global-mode)
+(electric-pair-mode 1)
 
 (define-globalized-minor-mode global-highlight-parentheses-mode highlight-parentheses-mode
   (lambda nil (highlight-parentheses-mode t)))
@@ -280,3 +283,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (show-paren-mode 1)
 
+
+;; yasnippet config
+(yas-global-mode 1)
