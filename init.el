@@ -68,6 +68,13 @@ re-downloaded in order to locate PACKAGE."
       :compile "rscope.el")
    (:name elscreen
           :type elpa)
+   (:name evil-extra-operator
+   	  :type git
+   	  :url "https://github.com/Dewdrops/evil-extra-operator.git"
+   	  :features evil-extra-operator
+   	  :compile "evil-extra-operator.el")
+   (:name evil-matchit
+   	  :type elpa)
 
    (:name evil-tabs
       :type git
@@ -87,6 +94,9 @@ re-downloaded in order to locate PACKAGE."
    color-theme-solarized
    evil
    evil-leader
+   evil-surround
+   evil-numbers
+   evil-matchit
    rscope))
 (el-get 'sync my:el-get-packages)
 
@@ -158,7 +168,6 @@ re-downloaded in order to locate PACKAGE."
 ;;; config evil-leader (before evil)
 (require 'evil-leader)
 (global-evil-leader-mode)
-
 
 ;;; evil configs
 (require 'evil)
@@ -236,28 +245,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (define-key evil-normal-state-map "\S-H" 'evil-beginning-of-line)
 (define-key evil-normal-state-map "\S-L" 'evil-end-of-line)
 
- ;; change mode-line color by evil state
-;(lexical-let ((default-color (cons (face-background 'mode-line)
-                                   ;(face-foreground 'mode-line))))
-             ;(add-hook 'post-command-hook
-                       ;(lambda ()
-                         ;(let ((color (cond ((minibufferp) default-color)
-                                            ;((evil-insert-state-p) '("#e80000" . "#ffffff"))
-                                            ;((evil-emacs-state-p)  '("#444488" . "#ffffff"))
-                                            ;((buffer-modified-p)   '("#006fa0" . "#ffffff"))
-                                            ;(t default-color))))
-                           ;(set-face-background 'mode-line (car color))
-                           ;(set-face-foreground 'mode-line (cdr color))))))
+;; evil surround
+(global-surround-mode 1)
 
-;(require 'powerline)
-;(powerline-center-evil-theme)
+;; evil matchit
+(global-evil-matchit-mode 1)
+
+;;evil extra operateor
 
 
-;(load "elscreen" "ElScreen" t)
-;(define-key evil-normal-state-map (kbd "C-w t") 'elscreen-create) ;creat tab
-;(define-key evil-normal-state-map (kbd "C-w x") 'elscreen-kill) ;kill tab
-;(define-key evil-normal-state-map "gT" 'elscreen-previous) ;previous tab
-;(define-key evil-normal-state-map "gt" 'elscreen-next) ;next tab
 ;; Server! ____________________________________________________________________
 
 (server-start)
