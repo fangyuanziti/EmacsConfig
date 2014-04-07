@@ -77,6 +77,8 @@ re-downloaded in order to locate PACKAGE."
    escreen                  ; screen for emacs, C-\ C-h
    switch-window            ; takes over C-x o
    auto-complete            ; complete as you type with overlays
+   autopair
+   highlight-parentheses
    undo-tree
    multi-term
    color-theme-solarized
@@ -117,12 +119,16 @@ re-downloaded in order to locate PACKAGE."
           (lambda ()
             (define-key term-raw-map (kbd "C-y") 'term-paste)))
 
+;; add window moving binding in multi-term(ansi-mode) mode
 (add-hook 'term-mode-hook
       (lambda ()
         (add-to-list 'term-bind-key-alist '("C-h" . windmove-left))
         (add-to-list 'term-bind-key-alist '("C-l" . windmove-right))
         (add-to-list 'term-bind-key-alist '("C-k" . windmove-up))
         (add-to-list 'term-bind-key-alist '("C-j" . windmove-down))))
+
+;; add shell compilation mode support
+(add-hook 'term-mode-hook 'compilation-shell-minor-mode)
 
 
 (defun reload-dotemacs-file ()
@@ -263,3 +269,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; Default major mode
 (setq initial-major-mode 'multi-term)
+
+
+;; pair configuration
+(autopair-global-mode)
+
+(define-globalized-minor-mode global-highlight-parentheses-mode highlight-parentheses-mode
+  (lambda nil (highlight-parentheses-mode t)))
+(global-highlight-parentheses-mode t)
+
+(show-paren-mode 1)
+
