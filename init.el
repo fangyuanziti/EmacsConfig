@@ -29,6 +29,8 @@ re-downloaded in order to locate PACKAGE."
 ;; Make backups of files, even when they're in version control
 (setq vc-make-backup-files t)
 
+(expand-file-name (concat user-emacs-directory "bin"))
+
 ;; Turn off mouse interface early in startup to avoid momentary display
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
@@ -88,6 +90,15 @@ re-downloaded in order to locate PACKAGE."
 (require 'auto-complete-config)
 (ac-config-default)
 
+;; reset PATH environment variable
+(setenv "PATH"
+	(concat 
+	 (expand-file-name (concat user-emacs-directory "bin")) ":"
+	 (getenv "PATH")))
+
+;; fix ZDOTDIR variable
+(setenv "ZDOTDIR" 
+	(expand-file-name (concat user-emacs-directory "zsh/config")))
 
 ;;; Multi-term config
 (require 'multi-term)
