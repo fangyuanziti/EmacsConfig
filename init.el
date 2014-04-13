@@ -1,3 +1,11 @@
+;; Always load newest byte code
+(setq load-prefer-newer t)
+
+;;; prepare load-path 
+(add-to-list 'load-path user-emacs-directory)	; default config dir
+(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "el-get/el-get"))) ;el-get package path
+(add-to-list 'load-path	(expand-file-name (concat user-emacs-directory "custom"))) ;custom path
+
 (require 'package)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
                          ("marmalade" . "http://marmalade-repo.org/packages/")
@@ -18,17 +26,21 @@ re-downloaded in order to locate PACKAGE."
 
 (package-initialize)
 
-
 ;;;General config
 
+;; reduce the frequency of garbage collection by making it happen on
+;; each 50MB of allocated data (the default is on every 0.76MB)
+(setq gc-cons-threshold 50000000)
+
 (setq scroll-margin 3)
+
 ;; Write backup files to own directory
 (setq backup-directory-alist
       `(("." . ,(expand-file-name
                  (concat user-emacs-directory "backups")))))
 (setq auto-save-file-name-transforms
       `((".*" ,(expand-file-name 
-		(concat user-emacs-directory "auto-save")) t)))
+                (concat user-emacs-directory "auto-save")) t)))
 ;; Make backups of files, even when they're in version control
 (setq vc-make-backup-files t)
 
@@ -41,13 +53,6 @@ re-downloaded in order to locate PACKAGE."
 ;; hide the splash-screen
 (setq inhibit-splash-screen t)
 
-;; Set up load path
-(add-to-list 'load-path user-emacs-directory)
-
-
-
-;;; prepare el-get environment
-(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
 
 (unless (require 'el-get nil t)
   (url-retrieve
@@ -62,25 +67,25 @@ re-downloaded in order to locate PACKAGE."
 (setq
  el-get-sources
  '((:name rscope
-      :type git
-      :url "https://github.com/rjarzmik/rscope.git"
-      :features rscope
-      :compile "rscope.el")
+          :type git
+          :url "https://github.com/rjarzmik/rscope.git"
+          :features rscope
+          :compile "rscope.el")
    (:name elscreen
           :type elpa)
    (:name evil-extra-operator
-   	  :type git
-   	  :url "https://github.com/Dewdrops/evil-extra-operator.git"
-   	  :features evil-extra-operator
-   	  :compile "evil-extra-operator.el")
+          :type git
+          :url "https://github.com/Dewdrops/evil-extra-operator.git"
+          :features evil-extra-operator
+          :compile "evil-extra-operator.el")
    (:name evil-matchit
-   	  :type elpa)
+          :type elpa)
 
    (:name evil-tabs
-      :type git
-      :url "https://github.com/krisajenkins/evil-tabs.git"
-      :features evil-tabs
-      :compile "el-tabs.el")))
+          :type git
+          :url "https://github.com/krisajenkins/evil-tabs.git"
+          :features evil-tabs
+          :compile "el-tabs.el")))
 (setq
  my:el-get-packages
  '(el-get                   ; el-get is self-hosting
@@ -94,6 +99,7 @@ re-downloaded in order to locate PACKAGE."
    color-theme-solarized
    evil
    evil-leader
+   ace-jump-mode
    evil-surround
    evil-numbers
    evil-matchit
@@ -107,41 +113,45 @@ re-downloaded in order to locate PACKAGE."
 
 ;; reset PATH environment variable
 (setenv "PATH"
-	(concat 
-	 (expand-file-name (concat user-emacs-directory "bin")) ":"
-	 (getenv "PATH")))
+        (concat 
+         (expand-file-name (concat user-emacs-directory "bin")) ":"
+         (getenv "PATH")))
 
 ;; fix ZDOTDIR variable
 (setenv "ZDOTDIR" 
-	(expand-file-name (concat user-emacs-directory "zsh/config")))
+        (expand-file-name (concat user-emacs-directory "zsh/zdotdir")))
 
 ;;; Multi-term config
 (require 'multi-term)
 (setq multi-term-program "/bin/zsh")
 
-(add-hook 'term-mode-hook
-      (lambda ()
-        (add-to-list 'term-bind-key-alist '("M-[" . multi-term-prev))
-        (add-to-list 'term-bind-key-alist '("M-]" . multi-term-next))))
+'(multi-term-scroll-to-bottom-on-output t)
 
+(setq term-eol-on-send t)
 (add-hook 'term-mode-hook
           (lambda ()
-            (setq term-buffer-maximum-size 0)))
+            (setq term-buffer-maximum-size 0)
 
-(add-hook 'term-mode-hook
-          (lambda ()
-            (define-key term-raw-map (kbd "C-y") 'term-paste)))
+            (setq scroll-margin 0)		; disable scroll 
+
+            (define-key term-raw-map (kbd "C-y") 'term-paste)
+            
+            ;; add shell compilation mode support
+            (compilation-shell-minor-mode))) 
+
+;; Actually I don't know why the "C-m" make my zsh in term mode terrible
+;; However, change the binding make everything normal.
+(delete '("C-m" . term-send-input) term-bind-key-alist)
+(add-to-list 'term-bind-key-alist '("C-t" . term-send-input))
 
 ;; add window moving binding in multi-term(ansi-mode) mode
-(add-hook 'term-mode-hook
-      (lambda ()
-        (add-to-list 'term-bind-key-alist '("C-h" . windmove-left))
-        (add-to-list 'term-bind-key-alist '("C-l" . windmove-right))
-        (add-to-list 'term-bind-key-alist '("C-k" . windmove-up))
-        (add-to-list 'term-bind-key-alist '("C-j" . windmove-down))))
+(add-to-list 'term-bind-key-alist '("M-[" . multi-term-prev))
+(add-to-list 'term-bind-key-alist '("M-]" . multi-term-next))
+(add-to-list 'term-bind-key-alist '("C-h" . windmove-left))
+(add-to-list 'term-bind-key-alist '("C-l" . windmove-right))
+(add-to-list 'term-bind-key-alist '("C-k" . windmove-up))
+(add-to-list 'term-bind-key-alist '("C-j" . windmove-down))
 
-;; add shell compilation mode support
-(add-hook 'term-mode-hook 'compilation-shell-minor-mode)
 
 
 (defun reload-dotemacs-file ()
@@ -157,7 +167,7 @@ re-downloaded in order to locate PACKAGE."
   (interactive)
   (if (eq dark-or-light 'solarized-light)
       (setq dark-or-light 'solarized-dark)
-      (setq dark-or-light 'solarized-light)
+    (setq dark-or-light 'solarized-light)
     )
   (load-theme dark-or-light t))
 
@@ -214,7 +224,13 @@ re-downloaded in order to locate PACKAGE."
   "k" 'kill-buffer
   "s" 'evil-window-split
   "v" 'evil-window-vsplit
-  "w" 'evil-write)
+  "w" 'evil-write
+  "fw" 'ace-jump-word-mode
+  "fl" 'ace-jump-line-mode
+  "ff" 'ace-jump-char-mode)
+
+(setq ace-jump-word-mode-use-query-char nil)
+
 
 (defun minibuffer-keyboard-quit ()
   "Abort recursive edit.
@@ -251,23 +267,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; evil matchit
 (global-evil-matchit-mode 1)
 
-;;evil extra operateor
-
-
-;; Server! ____________________________________________________________________
-
-(server-start)
-(defun ff/raise-frame-and-give-focus ()
-  (when window-system
-    (raise-frame)
-    (x-focus-frame (selected-frame))
-    (set-mouse-pixel-position (selected-frame) 4 4)
-    ))
-(add-hook 'server-switch-hook 'ff/raise-frame-and-give-focus)
-
+;; evil extra operateor
 
 ;; Default major mode
-(setq initial-major-mode 'multi-term)
+(setq initial-major-mode 'eshell)
 
 
 ;; pair configuration
@@ -282,3 +285,23 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; yasnippet config
 (yas-global-mode 1)
+(add-hook 'term-mode-hook (lambda()
+                            (yas-minor-mode -1)))
+
+
+(defun eshell/clear ()
+  (interactive)
+  (let ((inhibit-read-only t))
+    (erase-buffer)))
+
+(global-set-key (kbd "C-$") '(lambda () (interactive) (eshell t)))
+
+
+;; C mode config
+(setq c-default-style "linux"
+      c-basic-offset 4)
+
+(setq-default indent-tabs-mode nil)
+(setq default-tab-width 4)
+
+(electric-indent-mode 1)
