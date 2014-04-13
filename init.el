@@ -305,3 +305,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq default-tab-width 4)
 
 (electric-indent-mode 1)
+
+;; Server
+(server-start)
+(defun ff/raise-frame-and-give-focus ()
+  (when window-system
+    (raise-frame)
+    (x-focus-frame (selected-frame))
+    (set-mouse-pixel-position (selected-frame) 4 4)
+    ))
+(add-hook 'server-switch-hook 'ff/raise-frame-and-give-focus)
