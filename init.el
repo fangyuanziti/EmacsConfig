@@ -2,29 +2,8 @@
 (setq load-prefer-newer t)
 
 ;;; prepare load-path 
-(add-to-list 'load-path user-emacs-directory)	; default config dir
 (add-to-list 'load-path (expand-file-name (concat user-emacs-directory "el-get/el-get"))) ;el-get package path
 (add-to-list 'load-path	(expand-file-name (concat user-emacs-directory "custom"))) ;custom path
-
-(require 'package)
-(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                         ("marmalade" . "http://marmalade-repo.org/packages/")
-                         ("melpa" . "http://melpa.milkbox.net/packages/")))
-
-(defun require-package (package &optional min-version no-refresh)
-  "Install given PACKAGE, optionally requiring MIN-VERSION.
-If NO-REFRESH is non-nil, the available package lists will not be
-re-downloaded in order to locate PACKAGE."
-  (if (package-installed-p package min-version)
-      t
-    (if (or (assoc package package-archive-contents) no-refresh)
-        (package-install package)
-      (progn
-        (package-refresh-contents)
-        (require-package package min-version t)))))
-
-
-(package-initialize)
 
 ;;;General config
 
@@ -54,38 +33,60 @@ re-downloaded in order to locate PACKAGE."
 (setq inhibit-splash-screen t)
 
 
-(unless (require 'el-get nil t)
-  (url-retrieve
-   "https://github.com/dimitri/el-get/raw/master/el-get-install.el"
-   (lambda (s)
-     (end-of-buffer)
-     (eval-print-last-sexp))))
+(unless (require 'el-get nil 'noerror)
+  (with-current-buffer
+      (url-retrieve-synchronously
+       "https://raw.githubusercontent.com/dimitri/el-get/master/el-get-install.el")
+    (goto-char (point-max))
+    (eval-print-last-sexp)))
+
+(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
+(el-get 'sync)
 
 
 ;; now either el-get is `require'd already, or have been `load'ed by the
 ;; el-get installer.
+
+(defun el-github (github-args)
+  "convert github sources to underly git source"
+  (setq repo-name (symbol-name (plist-get github-args :name)))
+  (cl-multiple-value-setq (user repo)
+    (split-string repo-name "/"))
+
+  `(:name ,(intern repo)
+          :type git
+          :url ,(concat "https://github.com/" repo-name ".git")
+          :features ,(intern repo)
+          :compile ,(concat repo ".el") )
+  )
+
+(defun el-pre (sources)
+     (mapcar
+        (lambda (x)
+           (if (eq (plist-get x :type) 'github)
+               (el-github x)
+               x)) 
+        sources))
+
 (setq
  el-get-sources
- '((:name rscope
-          :type git
-          :url "https://github.com/rjarzmik/rscope.git"
-          :features rscope
-          :compile "rscope.el")
-   (:name elscreen
-          :type elpa)
-   (:name evil-extra-operator
-          :type git
-          :url "https://github.com/Dewdrops/evil-extra-operator.git"
-          :features evil-extra-operator
-          :compile "evil-extra-operator.el")
-   (:name evil-matchit
-          :type elpa)
+ (el-pre
+  `(
+    (:name elscreen
+           :type elpa)
 
-   (:name evil-tabs
-          :type git
-          :url "https://github.com/krisajenkins/evil-tabs.git"
-          :features evil-tabs
-          :compile "el-tabs.el")))
+    (:name Dewdrops/evil-extra-operator
+           :type github)
+
+    (:name evil-matchit
+           :type elpa)
+
+    (:name evil-tabs
+           :type git
+           :url "https://github.com/krisajenkins/evil-tabs.git"
+           :features evil-tabs
+           :compile "el-tabs.el"))))
+
 (setq
  my:el-get-packages
  '(el-get                   ; el-get is self-hosting
@@ -100,10 +101,10 @@ re-downloaded in order to locate PACKAGE."
    evil
    evil-leader
    ace-jump-mode
-   evil-surround
    evil-numbers
    evil-matchit
-   rscope))
+   evil-extra-operator
+   ))
 (el-get 'sync my:el-get-packages)
 
 
@@ -160,20 +161,7 @@ re-downloaded in order to locate PACKAGE."
   (load-file "~/.emacs.d/init.el"))
 
 ;;; solarized configs
-(setq dark-or-light 'solarized-dark)
-(load-theme 'solarized-dark t)
-
-(defun toggle-theme ()
-  (interactive)
-  (if (eq dark-or-light 'solarized-light)
-      (setq dark-or-light 'solarized-dark)
-    (setq dark-or-light 'solarized-light)
-    )
-  (load-theme dark-or-light t))
-
-(global-set-key (kbd "<f5>") 'toggle-theme)
-
-(require 'rscope)
+(color-theme-solarized)
 
 ;;; config evil-leader (before evil)
 (require 'evil-leader)
@@ -262,7 +250,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (define-key evil-normal-state-map "\S-L" 'evil-end-of-line)
 
 ;; evil surround
-(global-surround-mode 1)
+;;(global-surround-mode 1)
 
 ;; evil matchit
 (global-evil-matchit-mode 1)
@@ -271,7 +259,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; Default major mode
 (setq initial-major-mode 'eshell)
-
 
 ;; pair configuration
 (electric-pair-mode 1)
