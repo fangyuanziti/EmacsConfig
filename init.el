@@ -41,76 +41,27 @@
     (eval-print-last-sexp)))
 
 (add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
-(el-get 'sync)
+
+(el-get-bundle el-get)
+(el-get-bundle escreen)
+(el-get-bundle switch-window)
+(el-get-bundle company-mode)
+(el-get-bundle yasnippet)
+(el-get-bundle highlight-parentheses)
+(el-get-bundle undo-tree)
+(el-get-bundle multi-term)
+(el-get-bundle color-theme-solarized)
+(el-get-bundle evil)
+(el-get-bundle evil-leader)
+(el-get-bundle ace-jump-mode)
+(el-get-bundle evil-numbers)
+(el-get-bundle flycheck)
+(el-get-bundle flycheck-rust)
+(el-get-bundle rust-mode)
+(el-get-bundle elpa:evil-matchit)
+(el-get-bundle coffee-mode)
 
 
-;; now either el-get is `require'd already, or have been `load'ed by the
-;; el-get installer.
-
-(defun el-github (github-args)
-  "convert github sources to underly git source"
-  (setq repo-name (symbol-name (plist-get github-args :name)))
-  (cl-multiple-value-setq (user repo)
-    (split-string repo-name "/"))
-
-  `(:name ,(intern repo)
-          :type git
-          :url ,(concat "https://github.com/" repo-name ".git")
-          :features ,(intern repo)
-          :compile ,(concat repo ".el") )
-  )
-
-(defun el-pre (sources)
-     (mapcar
-        (lambda (x)
-           (if (eq (plist-get x :type) 'github)
-               (el-github x)
-               x)) 
-        sources))
-
-(setq
- el-get-sources
- (el-pre
-  `(
-    (:name elscreen
-           :type elpa)
-
-    (:name Dewdrops/evil-extra-operator
-           :type github)
-
-    (:name evil-matchit
-           :type elpa)
-
-    (:name evil-tabs
-           :type git
-           :url "https://github.com/krisajenkins/evil-tabs.git"
-           :features evil-tabs
-           :compile "el-tabs.el"))))
-
-(setq
- my:el-get-packages
- '(el-get                   ; el-get is self-hosting
-   escreen                  ; screen for emacs, C-\ C-h
-   switch-window            ; takes over C-x o
-   auto-complete            ; complete as you type with overlays
-   yasnippet
-   highlight-parentheses
-   undo-tree
-   multi-term
-   color-theme-solarized
-   evil
-   evil-leader
-   ace-jump-mode
-   evil-numbers
-   evil-matchit
-   evil-extra-operator
-   ))
-(el-get 'sync my:el-get-packages)
-
-
-;; auto complete config
-(require 'auto-complete-config)
-(ac-config-default)
 
 ;; reset PATH environment variable
 (setenv "PATH"
@@ -123,7 +74,6 @@
         (expand-file-name (concat user-emacs-directory "zsh/zdotdir")))
 
 ;;; Multi-term config
-(require 'multi-term)
 (setq multi-term-program "/bin/zsh")
 
 '(multi-term-scroll-to-bottom-on-output t)
@@ -148,11 +98,6 @@
 ;; add window moving binding in multi-term(ansi-mode) mode
 (add-to-list 'term-bind-key-alist '("M-[" . multi-term-prev))
 (add-to-list 'term-bind-key-alist '("M-]" . multi-term-next))
-(add-to-list 'term-bind-key-alist '("C-h" . windmove-left))
-(add-to-list 'term-bind-key-alist '("C-l" . windmove-right))
-(add-to-list 'term-bind-key-alist '("C-k" . windmove-up))
-(add-to-list 'term-bind-key-alist '("C-j" . windmove-down))
-
 
 
 (defun reload-dotemacs-file ()
@@ -164,11 +109,9 @@
 (color-theme-solarized)
 
 ;;; config evil-leader (before evil)
-(require 'evil-leader)
 (global-evil-leader-mode)
 
 ;;; evil configs
-(require 'evil)
 (evil-mode t)
 
 (setq evil-search-module 'evil-search
@@ -244,7 +187,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (define-key evil-normal-state-map "\C-j" 'evil-window-down)
 (define-key evil-normal-state-map "\C-k" 'evil-window-up)
 (define-key evil-normal-state-map "\C-l" 'evil-window-right)
-(define-key evil-normal-state-map "\C-l" 'evil-window-right)
 
 (define-key evil-normal-state-map "\S-H" 'evil-beginning-of-line)
 (define-key evil-normal-state-map "\S-L" 'evil-end-of-line)
@@ -302,3 +244,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (set-mouse-pixel-position (selected-frame) 4 4)
     ))
 (add-hook 'server-switch-hook 'ff/raise-frame-and-give-focus)
+
+;;; Flycheck
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
+(add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
+
+(add-hook 'after-init-hook 'global-company-mode)
+
+
+(setq coffee-tab-width 2)
+
+(provide 'init)
+;;; init.el ends here
+
