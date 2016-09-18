@@ -1,9 +1,21 @@
-;; Always load newest byte code
+;;; inti.el --- emacs config main file
+;;; Commentary:
+
+;;; Code:
+
+
+;;; Always load newest byte code
 (setq load-prefer-newer t)
 
-;;; prepare load-path 
-(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "el-get/el-get"))) ;el-get package path
-(add-to-list 'load-path	(expand-file-name (concat user-emacs-directory "custom"))) ;custom path
+
+(defun emacs-subdir (dirname)
+ "Get subdir path by DIRNAME."
+  (expand-file-name
+   (concat user-emacs-directory dirname "/")))
+
+;;; prepare load-path
+(add-to-list 'load-path (emacs-subdir "el-get/el-get")) ;el-get package path
+(add-to-list 'load-path	(emacs-subdir "custom")) ;custom path
 
 ;;;General config
 
@@ -13,13 +25,21 @@
 
 (setq scroll-margin 3)
 
+
+;; Disable interlock symlink
+(setq create-lockfiles nil)
+
 ;; Write backup files to own directory
-(setq backup-directory-alist
-      `(("." . ,(expand-file-name
-                 (concat user-emacs-directory "backups")))))
+(setq backup-directory-alist `(("." . ,(emacs-subdir "backups")))
+      backup-by-copying t
+      version-control t
+      delete-old-versions t
+      kept-new-versions 20
+      kept-old-versions 5)
+
 (setq auto-save-file-name-transforms
-      `((".*" ,(expand-file-name 
-                (concat user-emacs-directory "auto-save")) t)))
+     `((".*" ,(emacs-subdir "auto-save") t)))
+
 ;; Make backups of files, even when they're in version control
 (setq vc-make-backup-files t)
 
@@ -60,18 +80,28 @@
 (el-get-bundle rust-mode)
 (el-get-bundle elpa:evil-matchit)
 (el-get-bundle coffee-mode)
+(el-get-bundle scala-mode)
+(el-get-bundle puml-mode)
+(el-get-bundle typescript-mode)
+(el-get-bundle js2-mode)
+(el-get-bundle go-mode)
+(el-get-bundle haskell-mode)
+(el-get-bundle yaml-mode)
 
 
+(defun prefix-path (path)
+  "Prefix path into enviroment variable `PATH`."
+  (setenv "PATH"
+          (concat path
+                  ":"
+                  (getenv "PATH"))))
 
 ;; reset PATH environment variable
-(setenv "PATH"
-        (concat 
-         (expand-file-name (concat user-emacs-directory "bin")) ":"
-         (getenv "PATH")))
+(prefix-path (emacs-subdir "bin"))
 
 ;; fix ZDOTDIR variable
-(setenv "ZDOTDIR" 
-        (expand-file-name (concat user-emacs-directory "zsh/zdotdir")))
+(setenv "ZDOTDIR"
+        (emacs-subdir "zsh/zdotdir"))
 
 ;;; Multi-term config
 (setq multi-term-program "/bin/zsh")
@@ -83,12 +113,12 @@
           (lambda ()
             (setq term-buffer-maximum-size 0)
 
-            (setq scroll-margin 0)		; disable scroll 
+            (setq scroll-margin 0)		; disable scroll
 
             (define-key term-raw-map (kbd "C-y") 'term-paste)
             
             ;; add shell compilation mode support
-            (compilation-shell-minor-mode))) 
+            (compilation-shell-minor-mode)))
 
 ;; Actually I don't know why the "C-m" make my zsh in term mode terrible
 ;; However, change the binding make everything normal.
@@ -101,7 +131,7 @@
 
 
 (defun reload-dotemacs-file ()
-  ;; "reload your .emacs file without restarting Emacs"
+  "Reload your .emacs file without restarting Emacs."
   (interactive)
   (load-file "~/.emacs.d/init.el"))
 
@@ -139,8 +169,8 @@
                               (Wdired-mode . normal))
       do (evil-set-initial-state mode state))
 
-;; remove the evil key binding
 (defun evil-delete-key (keymap key)
+  "Remove the evil key binding by KEYMAP and KEY."
   (define-key keymap key nil))
 
 
@@ -219,6 +249,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 
 (defun eshell/clear ()
+  "Clear function for eshell."
   (interactive)
   (let ((inhibit-read-only t))
     (erase-buffer)))
@@ -238,6 +269,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; Server
 (server-start)
 (defun ff/raise-frame-and-give-focus ()
+  "Rasie a new frame and give focus."
   (when window-system
     (raise-frame)
     (x-focus-frame (selected-frame))
@@ -255,6 +287,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (setq coffee-tab-width 2)
 
-(provide 'init)
-;;; init.el ends here
+;; Enable puml-mode for PlantUML files
+(add-to-list 'auto-mode-alist '("\\.puml\\'" . puml-mode))
+(add-to-list 'auto-mode-alist '("\\.plantuml\\'" . puml-mode))
+(setq puml-plantuml-jar-path
+      (expand-file-name "~/.emacs.d/el-get/puml-mode/plantuml.jar"))
 
+(provide 'init)
+
+;; Local Variables:
+;; byte-compile-warnings: (not free-vars)
+;; End:
+;;; init.el ends here
