@@ -25,7 +25,6 @@
 
 (setq scroll-margin 3)
 
-
 ;; Disable interlock symlink
 (setq create-lockfiles nil)
 
@@ -42,8 +41,6 @@
 
 ;; Make backups of files, even when they're in version control
 (setq vc-make-backup-files t)
-
-(expand-file-name (concat user-emacs-directory "bin"))
 
 ;; Turn off mouse interface early in startup to avoid momentary display
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
@@ -87,6 +84,13 @@
 (el-get-bundle go-mode)
 (el-get-bundle haskell-mode)
 (el-get-bundle yaml-mode)
+(el-get-bundle fix-word)
+(el-get-bundle whitespace-cleanup-mode)
+(el-get-bundle restclient)
+(el-get-bundle company-restclient)
+(el-get-bundle magit)
+(el-get-bundle git-gutter)
+(el-get-bundle ack)
 
 
 (defun prefix-path (path)
@@ -247,7 +251,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (add-hook 'term-mode-hook (lambda()
                             (yas-minor-mode -1)))
 
-
 (defun eshell/clear ()
   "Clear function for eshell."
   (interactive)
@@ -292,6 +295,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (add-to-list 'auto-mode-alist '("\\.plantuml\\'" . puml-mode))
 (setq puml-plantuml-jar-path
       (expand-file-name "~/.emacs.d/el-get/puml-mode/plantuml.jar"))
+
+;; Fix word configuration
+(global-set-key (kbd "M-u") #'fix-word-upcase)
+(global-set-key (kbd "M-l") #'fix-word-downcase)
+(global-set-key (kbd "M-c") #'fix-word-capitalize)
+
+;; Git gutter configuration
+(global-git-gutter-mode +1)
+
 
 (provide 'init)
 
